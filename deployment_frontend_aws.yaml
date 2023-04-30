@@ -1,0 +1,63 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata: 
+  name: frontend
+  namespace: frontend-ns
+  labels: 
+    app: frontend 
+    version: v6.1
+spec: 
+  replicas: 1 
+  selector: 
+    matchLabels: 
+      app: frontend 
+  template: 
+    metadata: 
+      labels: 
+        app: frontend
+        version: v6.1
+    spec: 
+      containers: 
+      - name: backend 
+        image: quay.io/shailendra14k/frontend:6.1
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+        ports: 
+        - containerPort: 8180
+        env:
+        - name: backendapp
+          value: backend.frontend-aws-mumbai:8080/backend
+---
+apiVersion: v1 
+kind: Service 
+metadata: 
+  name: frontend
+  namespace: frontend-ns 
+spec: 
+  selector: 
+    app: frontend 
+  ports: 
+  - protocol: TCP 
+    port: 8080 
+    targetPort: 8180
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: frontend
+  namespace: frontend-ns
+spec:
+  host: demo-frontend-ns.apps.shsingh-ocp4.sv9i.p1.openshiftapps.com
+  path: /frontend
+  to:
+    kind: Service
+    name: frontend
+    weight: 100
+  port:
+    targetPort: 8180
+  wildcardPolicy: None

@@ -1,0 +1,47 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata: 
+  name: backend
+  namespace: backend-ns
+  labels: 
+    app: backend 
+    version: v6.1
+spec: 
+  replicas: 1 
+  selector: 
+    matchLabels: 
+      app: backend 
+  template: 
+    metadata: 
+      labels: 
+        app: backend
+        version: v6.1
+    spec: 
+      containers: 
+      - name: backend 
+        image: quay.io/shailendra14k/backend:6.1
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+        ports: 
+        - containerPort: 8180
+        env:
+        - name: ClusterName
+          value: ARO-Azure-SouthIndia
+---
+apiVersion: v1 
+kind: Service 
+metadata: 
+  name: backend
+  namespace: backend-ns 
+spec: 
+  selector: 
+    app: backend 
+  ports: 
+  - protocol: TCP 
+    port: 8080 
+    targetPort: 8180
